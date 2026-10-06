@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>摸魚大師 🚀</title>
+    <style>
+        :root {
+            --bg-color: #090d16;
+            --panel-bg: #131c31;
+            --border-color: #1e293b;
+            --accent-pink: #f43f5e;
+            --accent-blue: #0ea5e9;
+            --accent-green: #10b981;
+            --accent-yellow: #f59e0b;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+        }
+        * { box-sizing: border-box; user-select: none; }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            touch-action: manipulation;
+        }
+        header {
+            width: 100%;
+            max-width: 480px;
+            padding: 16px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--panel-bg);
+        }
+        h1 { margin: 0; font-size: 1.4rem; color: var(--accent-blue); letter-spacing: 1px; }
+        p.subtitle { margin: 4px 0 0; font-size: 0.8rem; color: var(--text-sub); }
+
+        .game-wrapper {
+            width: 100%;
+            max-width: 480px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            background: var(--panel-bg);
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+        .stat-box div:first-child { font-size: 0.75rem; color: var(--text-sub); }
+        .stat-box div:last-child { font-size: 1.1rem; font-weight: bold; color: var(--text-main); margin-top: 2px; }
+
+        .office-scene {
+            position: relative;
+            background: #1e293b;
+            height: 180px;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 2px solid #334155;
+            box-shadow: inset 0 4px 12px rgba(0,0,0,0.6);
+        }
+
+        .boss-avatar {
+            font-size: 3.5rem;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            margin-bottom: 8px;
+        }
+
+        .alert-banner {
+            font-size: 1rem;
+            font-weight: bold;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            text-align: center;
+            width: 85%;
+        }
+        .status-away { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid #10b981; }
+        .status-warning { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid #f59e0b; animation: pulse 0.5s infinite alternate; }
+        .status-watching { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #ef4444; animation: shake 0.2s infinite; }
+
+        @keyframes pulse { 0% { opacity: 0.8; } 100% { opacity: 1; transform: scale(1.02); } }
+        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } 100% { transform: translateX(0); } }
+
+        .timer-container {
+            width: 100%;
+            height: 6px;
+            background: #0f172a;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+        }
+        .timer-bar {
+            height: 100%;
+            background: var(--accent-pink);
+            width: 0%;
+            transition: width 0.05s linear;
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 16px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: transform 0.08s, filter 0.1s;
+        }
+        .btn:active { transform: scale(0.95); filter: brightness(1.2); }
+        .btn-slack { background: linear-gradient(135deg, #f43f5e, #e11d48); color: white; grid-column: span 2; font-size: 1.2rem; padding: 20px; }
+        .btn-work { background: linear-gradient(135deg, #0ea5e9, #0284c7); color: white; }
+        .btn-coffee { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+
+        .shop-section {
+            background: var(--panel-bg);
+            border-radius: 12px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .shop-title { font-size: 0.9rem; font-weight: bold; margin-bottom: 8px; color: var(--accent-yellow); display: flex; justify-content: space-between; align-items: center; }
+        .shop-items {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 160px;
+            overflow-y: auto;
+        }
+        .shop-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1e293b;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            border: 1px solid #334155;
+        }
+        .shop-item button {
+            background: var(--accent-green);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .shop-item button:disabled { background: #475569; color: #94a3b8; cursor: not-allowed; }
+
+        .log-box {
+            background: #090d16;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 0.75rem;
+            color: var(--text-sub);
+            height: 50px;
+            overflow-y: hidden;
+            display: flex;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>摸魚大師：第1代 🚀</h1>
+        <p class="subtitle">老闆不在瘋狂摸魚，老闆回頭秒裝加班！</p>
+    </header>
+
+    <div class="game-wrapper">
+        <div class="dashboard">
+            <div class="stat-box">
+                <div>摸魚值</div>
+                <div id="scoreDisplay">0</div>
+            </div>
+            <div class="stat-box">
+                <div>被動產出</div>
+                <div id="cpsDisplay">+0 /秒</div>
+            </div>
+            <div class="stat-box">
+                <div>最高紀錄</div>
+                <div id="highScoreDisplay">0</div>
+            </div>
+        </div>
+
+        <div class="office-scene" id="officeScene">
+            <div class="boss-avatar" id="bossAvatar">😎</div>
+            <div class="alert-banner status-away" id="alertBanner">老闆正在辦公室深處泡茶，盡情摸魚！</div>
+            <div class="timer-container">
+                <div class="timer-bar" id="timerBar"></div>
+            </div>
+        </div>
+
+        <div class="action-grid">
+            <button class="btn btn-slack" onclick="doSlack()">
+                <span>✨ 瘋狂摸魚 (滑手遊/看廢片)</span>
+                <span style="font-size: 0.75rem; font-weight: normal; opacity: 0.8;" id="clickPowerText">+1 摸魚值</span>
+            </button>
+            <button class="btn btn-work" onclick="doWork()">
+                <span>💻 假裝敲鍵盤</span>
+                <span style="font-size: 0.75rem; font-weight: normal; opacity: 0.8;">避難 / 應急</span>
+            </button>
+            <button class="btn btn-coffee" onclick="drinkCoffee()">
+                <span>☕ 喝咖啡提神</span>
+                <span style="font-size: 0.75rem; font-weight: normal; opacity: 0.8;">恢復冷靜 / 穩血</span>
+            </button>
+        </div>
+
+        <div class="log-box" id="logBox">
+            系統提示：點擊上方“瘋狂摸魚”開始累積你的摸魚人生。小心老闆突襲！
+        </div>
+
+        <div class="shop-section">
+            <div class="shop-title">
+                <span>🛠️ 摸魚裝備升級商店</span>
+                <span style="font-size: 0.75rem; color: var(--text-sub);">自動被動增加摸魚值</span>
+            </div>
+            <div class="shop-items" id="shopItems"></div>
+        </div>
+    </div>
+
+    <script>
+        let score = 0;
+        let highScore = localStorage.getItem('mouyu_highscore') || 0;
+        let clickPower = 1;
+        let cps = 0;
+        let gameState = 'AWAY';
+        let gameTimer = null;
+        let warningTimeLeft = 0;
+        let warningTotalTime = 2000;
+
+        const upgrades = [
+            { id: 'u1', name: '機械鍵盤 (巨集連點)', cost: 15, power: 1, owned: 0, type: 'click' },
+            { id: 'u2', name: '雙螢幕防窺膜', cost: 50, cps: 1, owned: 0, type: 'cps' },
+            { id: 'u3', name: '降噪藍牙耳機', cost: 200, cps: 5, owned: 0, type: 'cps' },
+            { id: 'u4', name: '座位改到角落盲區', cost: 800, cps: 25, owned: 0, type: 'cps' },
+            { id: 'u5', name: '直接帶棉被進公司', cost: 3000, cps: 100, owned: 0, type: 'cps' }
+        ];
+
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const cpsDisplay = document.getElementById('cpsDisplay');
+        const highScoreDisplay = document.getElementById('highScoreDisplay');
+        const bossAvatar = document.getElementById('bossAvatar');
+        const alertBanner = document.getElementById('alertBanner');
+        const timerBar = document.getElementById('timerBar');
+        const logBox = document.getElementById('logBox');
+        const clickPowerText = document.getElementById('clickPowerText');
+        const shopItemsEl = document.getElementById('shopItems');
+
+        highScoreDisplay.innerText = highScore;
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if (!audioCtx) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            let now = audioCtx.currentTime;
+            if (type === 'click') {
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.exponentialRampToValueAtTime(800, now + 0.05);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.05);
+                osc.start(now); osc.stop(now + 0.05);
+            } else if (type === 'warning') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.setValueAtTime(450, now + 0.1);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+                osc.start(now); osc.stop(now + 0.2);
+            } else if (type === 'alert') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.linearRampToValueAtTime(110, now + 0.4);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
+                osc.start(now); osc.stop(now + 0.4);
+            } else if (type === 'buy') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.exponentialRampToValueAtTime(1200, now + 0.15);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
+                osc.start(now); osc.stop(now + 0.15);
+            }
+        }
+
+        function logMessage(msg) {
+            logBox.innerText = "動態：" + msg;
+        }
+
+        setInterval(() => {
+            if (cps > 0) {
+                score += cps / 10;
+                updateDisplay();
+            }
+        }, 100);
+
+        function startBossLoop() { scheduleNextBossEvent(); }
+
+        function scheduleNextBossEvent() {
+            let awayTime = Math.random() * 4000 + 3000;
+            gameState = 'AWAY';
+            bossAvatar.innerText = '😎';
+            bossAvatar.style.transform = 'scale(1)';
+            alertBanner.className = 'alert-banner status-away';
+            alertBanner.innerText = '老闆正在辦公室深處泡茶，盡情摸魚！';
+            timerBar.style.width = '0%';
+            setTimeout(() => { triggerWarning(); }, awayTime);
+        }
+
+        function triggerWarning() {
+            gameState = 'WARNING';
+            bossAvatar.innerText = '👀';
+            bossAvatar.style.transform = 'scale(1.1)';
+            alertBanner.className = 'alert-banner status-warning';
+            alertBanner.innerText = '⚠️ 老闆好像正往你這走過來！準備裝認真！';
+            playSound('warning');
+            logMessage("注意！老闆離開座位了，隨時會回頭！");
+            setTimeout(() => { triggerWatching(); }, 1200);
+        }
+
+        function triggerWatching() {
+            gameState = 'WATCHING';
+            bossAvatar.innerText = '😡';
+            bossAvatar.style.transform = 'scale(1.2) rotate(5deg)';
+            alertBanner.className = 'alert-banner status-watching';
+            alertBanner.innerText = '🚨 老闆正在瞪你！立刻點擊“假裝敲鍵盤”！';
+            playSound('alert');
+            logMessage("緊急！老闆正在盯哨！快按假裝加班避難！");
+            warningTotalTime = 2000;
+            warningTimeLeft = warningTotalTime;
+            if (gameTimer) clearInterval(gameTimer);
+            let interval = 30;
+            gameTimer = setInterval(() => {
+                warningTimeLeft -= interval;
+                let pct = ((warningTotalTime - warningTimeLeft) / warningTotalTime) * 100;
+                timerBar.style.width = pct + '%';
+                if (warningTimeLeft <= 0) {
+                    clearInterval(gameTimer);
+                    gameOver("被老闆抓到在滑手機摸魚！當場扣年終！");
+                }
+            }, interval);
+        }
+
+        function doSlack() {
+            if (gameState === 'WATCHING') {
+                clearInterval(gameTimer);
+                gameOver("老闆在瞪你還敢滑手遊！直接社死抓包！");
+                return;
+            }
+            if (gameState === 'WARNING') {
+                score += clickPower * 2;
+                logMessage("極限火中栗子！在老闆回頭前偷到一波！");
+            } else {
+                score += clickPower;
+            }
+            playSound('click');
+            updateDisplay();
+        }
+
+        function doWork() {
+            playSound('click');
+            if (gameState === 'WATCHING') {
+                clearInterval(gameTimer);
+                timerBar.style.width = '0%';
+                score += 15 * clickPower;
+                logMessage("完美避難！假裝工作成功騙過老闆，獲得獎勵！");
+                scheduleNextBossEvent();
+            } else if (gameState === 'WARNING') {
+                clearInterval(gameTimer);
+                timerBar.style.width = '0%';
+                score += 5;
+                logMessage("提早假裝加班，安全過關。");
+                scheduleNextBossEvent();
+            } else {
+                score = Math.max(0, score - 3);
+                logMessage("老闆不在你認真加班？腦子壞了，摸魚值微幅下降 (-3)");
+                updateDisplay();
+            }
+        }
+
+        function drinkCoffee() {
+            playSound('buy');
+            score += 20;
+            logMessage("喝了一口即溶黑咖啡，精神百倍！摸魚值 +20");
+            updateDisplay();
+        }
+
+        function gameOver(reason) {
+            alert(reason + "\n\n最終累積摸魚值: " + Math.floor(score));
+            if (score > highScore) {
+                highScore = Math.floor(score);
+                localStorage.setItem('mouyu_highscore', highScore);
+                highScoreDisplay.innerText = highScore;
+            }
+            score = 0;
+            updateDisplay();
+            scheduleNextBossEvent();
+        }
+
+        function renderShop() {
+            shopItemsEl.innerHTML = '';
+            upgrades.forEach(item => {
+                let div = document.createElement('div');
+                div.className = 'shop-item';
+                div.innerHTML = `
+                    <div>
+                        <div style="font-weight:bold;">${item.name} (已擁有: ${item.owned})</div>
+                        <div style="font-size:0.75rem; color:var(--text-sub);">價格: ${Math.floor(item.cost)} 摸魚值</div>
+                    </div>
+                    <button onclick="buyUpgrade('${item.id}')" id="btn_${item.id}" ${score < item.cost ? 'disabled' : ''}>購買</button>
+                `;
+                shopItemsEl.appendChild(div);
+            });
+        }
+
+        function buyUpgrade(id) {
+            let item = upgrades.find(u => u.id === id);
+            if (score >= item.cost) {
+                score -= item.cost;
+                item.owned += 1;
+                item.cost = Math.floor(item.cost * 1.5);
+                if (item.type === 'click') {
+                    clickPower += item.power;
+                    clickPowerText.innerText = `+${clickPower} 摸魚值`;
+                } else if (item.type === 'cps') {
+                    cps += item.cps;
+                    cpsDisplay.innerText = `+${cps} /秒`;
+                }
+                playSound('buy');
+                logMessage(`成功購買“${item.name}”！摸魚效率大幅提升！`);
+                updateDisplay();
+            }
+        }
+
+        function updateDisplay() {
+            scoreDisplay.innerText = Math.floor(score);
+            if (score > highScore) {
+                highScore = Math.floor(score);
+                localStorage.setItem('mouyu_highscore', highScore);
+                highScoreDisplay.innerText = highScore;
+            }
+            upgrades.forEach(item => {
+                let btn = document.getElementById(`btn_${item.id}`);
+                if (btn) {
+                    btn.disabled = score < item.cost;
+                }
+            });
+        }
+
+        renderShop();
+        setInterval(renderShop, 500);
+        setTimeout(startBossLoop, 1500);
+    </script>
+</body>
+</html>
+
+index.html⁠
